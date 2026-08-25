@@ -2,8 +2,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
     "build": "next build",
-    "start": "next start",
     "build:webpack": "next build --webpack",
     "check": "node verify.mjs",
     "inspect": "node verify.mjs inspect"

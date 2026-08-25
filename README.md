@@ -48,16 +48,36 @@ component, so the maps are also available in the browser.
 ### In the browser (fastest)
 
 ```sh
-npx next dev
+npm run dev            # Turbopack (Next's default)
 ```
 
 Open http://localhost:3000 — the page reads `__coverage__` and renders the
-result directly:
+result directly, labelled with the bundler that built it:
 
-| file                   | functions instrumented | ignore hint           |
-| ---------------------- | ---------------------- | --------------------- |
-| lib/leading-only.ts    | leadingOnly            | NOT honored (dropped) |
-| lib/with-trailing.ts   | none                   | honored               |
+```
+Built by: Turbopack
+
+file                   functions instrumented   ignore hint
+lib/leading-only.ts    leadingOnly              NOT honored (dropped)
+lib/with-trailing.ts   none                     honored
+```
+
+Stop it and run the same page through webpack for the control:
+
+```sh
+npm run dev:webpack    # next dev --webpack
+```
+
+```
+Built by: webpack
+
+file                   functions instrumented   ignore hint
+lib/leading-only.ts    none                     honored
+lib/with-trailing.ts   none                     honored
+```
+
+(Next allows one dev server per project directory, so run them one after the
+other.)
 
 To see the raw data, in the DevTools console:
 
