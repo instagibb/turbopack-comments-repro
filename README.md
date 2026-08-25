@@ -14,32 +14,75 @@ depend on the plugin being able to see comments.
   ignore hint, plus **one trailing comment** (`code; // comment`) on an
   unrelated line.
 
-## Run
+## Quick check
 
 ```sh
 npm install
 npm run check
 ```
 
-This builds with Turbopack, then with webpack, and inspects the emitted istanbul
-coverage maps.
-
-## Result
+This builds with Turbopack, then with webpack, inspects the emitted istanbul
+coverage maps, and prints:
 
 ```
-[turbopack]
-  lib/leading-only.ts: ignore NOT honored (function instrumented)
-  lib/with-trailing.ts: ignore honored (fnMap empty)
-
-[webpack]
-  lib/leading-only.ts: ignore honored (fnMap empty)
-  lib/with-trailing.ts: ignore honored (fnMap empty)
+================================================================
+  /* istanbul ignore next */ hint on the exported function
+================================================================
+  file                     Turbopack        webpack
+  ----------------------------------------------------------
+  lib/leading-only.ts      NOT honored      honored
+  lib/with-trailing.ts     honored          honored
+================================================================
+  BUG REPRODUCED: Turbopack dropped the hint in the file with only
+  leading comments, but honored it once a trailing comment exists.
+================================================================
 ```
 
-Under Turbopack, the plugin sees **no comments at all** for `leading-only.ts`,
-so the ignore hint silently does nothing. Adding a single trailing comment
-anywhere in the file makes every comment in the file visible to the plugin.
-webpack honors the hint in both files.
+## Verify manually
+
+The plugin writes an istanbul coverage map into each instrumented module. Its
+`fnMap` lists the functions that were instrumented — if the ignore hint was
+honored, the function is **absent** from `fnMap`.
+
+1. Build with Turbopack:
+
+   ```sh
+   npx next build
+   ```
+
+2. Print each file's `fnMap` from the server chunk that contains the two modules:
+
+   ```sh
+   perl -ne 'while (/path:"([^"]*(?:leading-only|with-trailing)\.ts)".*?fnMap:(.*?),branchMap/g) { print "$1\n  fnMap: $2\n" }' .next/server/chunks/ssr/*.js
+   ```
+
+   Output:
+
+   ```
+   lib/leading-only.ts
+     fnMap: {0:{name:"leadingOnly",decl:{...},loc:{...},line:4}}   <- instrumented: the ignore hint was dropped
+   lib/with-trailing.ts
+     fnMap: {}                                                       <- ignore hint honored
+   ```
+
+3. The toggle test — delete the trailing comment on the last line of
+   `lib/with-trailing.ts`, rebuild, rerun step 2: its `fnMap` now contains
+   `withTrailing`. Restore the comment, rebuild: `fnMap: {}` again. A comment on
+   an unrelated line decides whether an `istanbul ignore` hint five lines above
+   it works.
+
+4. Control — build with webpack and run the same extraction (the chunk is
+   `.next/server/app/page.js` and the path is absolute there):
+
+   ```sh
+   npx next build --webpack
+   perl -ne 'while (/path:"([^"]*(?:leading-only|with-trailing)\.ts)".*?fnMap:(.*?),branchMap/g) { print "$1\n  fnMap: $2\n" }' .next/server/app/page.js
+   ```
+
+   Both files report `fnMap: {}` — webpack honors the hint regardless.
+
+(`npm run inspect` runs the same extraction against whatever is currently in
+`.next`.)
 
 ## Root cause
 

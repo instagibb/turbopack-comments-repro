@@ -5,7 +5,8 @@
     "build": "next build",
     "start": "next start",
     "build:webpack": "next build --webpack",
-    "check": "next build && node verify.mjs turbopack && next build --webpack && node verify.mjs webpack"
+    "check": "node verify.mjs",
+    "inspect": "node verify.mjs inspect"
   },
   "dependencies": {
     "next": "canary",
