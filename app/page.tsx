@@ -1,3 +1,5 @@
+"use client";
+
 import { leadingOnly } from "../lib/leading-only";
 import { withTrailing } from "../lib/with-trailing";
 

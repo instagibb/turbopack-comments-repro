@@ -42,7 +42,28 @@ coverage maps, and prints:
 
 The plugin writes an istanbul coverage map into each instrumented module. Its
 `fnMap` lists the functions that were instrumented — if the ignore hint was
-honored, the function is **absent** from `fnMap`.
+honored, the function is **absent** from `fnMap`. `app/page.tsx` is a client
+component, so the maps are also available in the browser.
+
+### In the browser (fastest)
+
+```sh
+npx next dev
+```
+
+Open http://localhost:3000 and, in the DevTools console:
+
+```js
+__coverage__["lib/leading-only.ts"].fnMap    // {0: {name: "leadingOnly", …}}  <- instrumented: hint dropped
+__coverage__["lib/with-trailing.ts"].fnMap   // {}                             <- hint honored
+__coverage__["lib/leading-only.ts"].f        // {0: 2}  the "ignored" function is being counted
+```
+
+In **Sources**, open the `_next/static/chunks/…` file containing `leadingOnly`
+(dev chunks are unminified): `leadingOnly` starts with `cov_….f[0]++` counter
+lines, `withTrailing` has none.
+
+### From a production build
 
 1. Build with Turbopack:
 
@@ -50,10 +71,11 @@ honored, the function is **absent** from `fnMap`.
    npx next build
    ```
 
-2. Print each file's `fnMap` from the server chunk that contains the two modules:
+2. Find the chunk containing the modules and print each file's `fnMap`:
 
    ```sh
-   perl -ne 'while (/path:"([^"]*(?:leading-only|with-trailing)\.ts)".*?fnMap:(.*?),branchMap/g) { print "$1\n  fnMap: $2\n" }' .next/server/chunks/ssr/*.js
+   f=$(grep -rl 'leading-only.ts' .next --include='*.js' | head -1)
+   perl -ne 'while (/path:"([^"]*(?:leading-only|with-trailing)\.ts)".*?fnMap:(.*?),branchMap/g) { print "$1\n  fnMap: $2\n" }' "$f"
    ```
 
    Output:
@@ -65,24 +87,19 @@ honored, the function is **absent** from `fnMap`.
      fnMap: {}                                                       <- ignore hint honored
    ```
 
-3. The toggle test — delete the trailing comment on the last line of
-   `lib/with-trailing.ts`, rebuild, rerun step 2: its `fnMap` now contains
-   `withTrailing`. Restore the comment, rebuild: `fnMap: {}` again. A comment on
-   an unrelated line decides whether an `istanbul ignore` hint five lines above
-   it works.
+3. Control — `npx next build --webpack` and repeat step 2 (the path is absolute
+   there, hence the `[^"]*` wildcard): both files report `fnMap: {}`.
 
-4. Control — build with webpack and run the same extraction (the chunk is
-   `.next/server/app/page.js` and the path is absolute there):
+### The toggle test
 
-   ```sh
-   npx next build --webpack
-   perl -ne 'while (/path:"([^"]*(?:leading-only|with-trailing)\.ts)".*?fnMap:(.*?),branchMap/g) { print "$1\n  fnMap: $2\n" }' .next/server/app/page.js
-   ```
+Delete the trailing comment on the last line of `lib/with-trailing.ts`, rebuild
+(or just save, with the dev server running) and look again: its `fnMap` now
+contains `withTrailing`. Restore the comment: `fnMap: {}` again. A comment on an
+unrelated line decides whether an `istanbul ignore` hint five lines above it
+works.
 
-   Both files report `fnMap: {}` — webpack honors the hint regardless.
-
-(`npm run inspect` runs the same extraction against whatever is currently in
-`.next`.)
+(`npm run inspect` runs the production-build extraction against whatever is
+currently in `.next`.)
 
 ## Root cause
 
