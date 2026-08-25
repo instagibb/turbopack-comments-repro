@@ -1,5 +1,7 @@
 # Turbopack never passes comments to SWC wasm plugins unless a file has both leading AND trailing comments
 
+Reproduction for [vercel/next.js#97866](https://github.com/vercel/next.js/issues/97866).
+
 Minimal reproduction scaffolded from `npx create-next-app -e reproduction-template` (tracks `next@canary`; reproduced on `16.4.0-canary.6` and on `16.3.0`/`16.3.1`) with only the relevant changes added, using
 [`swc-plugin-coverage-instrument`](https://www.npmjs.com/package/swc-plugin-coverage-instrument)
 (the istanbul coverage plugin), whose `/* istanbul ignore next */` comment hints
