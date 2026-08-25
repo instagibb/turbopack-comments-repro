@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "build:webpack": "next build --webpack",
+    "check": "next build && node verify.mjs turbopack && next build --webpack && node verify.mjs webpack"
+  },
+  "dependencies": {
+    "next": "canary",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "swc-plugin-coverage-instrument": "^0.0.32"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}
