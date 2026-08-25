@@ -51,7 +51,15 @@ component, so the maps are also available in the browser.
 npx next dev
 ```
 
-Open http://localhost:3000 and, in the DevTools console:
+Open http://localhost:3000 — the page reads `__coverage__` and renders the
+result directly:
+
+| file                   | functions instrumented | ignore hint           |
+| ---------------------- | ---------------------- | --------------------- |
+| lib/leading-only.ts    | leadingOnly            | NOT honored (dropped) |
+| lib/with-trailing.ts   | none                   | honored               |
+
+To see the raw data, in the DevTools console:
 
 ```js
 __coverage__["lib/leading-only.ts"].fnMap    // {0: {name: "leadingOnly", …}}  <- instrumented: hint dropped
