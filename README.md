@@ -2,10 +2,16 @@
 
 Reproduction for [vercel/next.js#97866](https://github.com/vercel/next.js/issues/97866).
 
-Minimal reproduction scaffolded from `npx create-next-app -e reproduction-template` (tracks `next@canary`; reproduced on `16.4.0-canary.6` and on `16.3.0`/`16.3.1`) with only the relevant changes added, using
+Minimal reproduction scaffolded from `npx create-next-app -e reproduction-template` (tracks `next@canary`; reproduced on `16.4.0-canary.51` and earlier on `16.4.0-canary.6` and `16.3.0`/`16.3.1`) with only the relevant changes added, using
 [`swc-plugin-coverage-instrument`](https://www.npmjs.com/package/swc-plugin-coverage-instrument)
 (the istanbul coverage plugin), whose `/* istanbul ignore next */` comment hints
 depend on the plugin being able to see comments.
+
+> Note: the plugin version must match the SWC plugin ABI of the Next.js version
+> under test: `swc-plugin-coverage-instrument@0.0.33` for current canary
+> (`swc_plugin_runner` 34), `0.0.32` for `16.4.0-canary.6` and `16.3.x`
+> (`swc_plugin_runner` 33). A mismatch fails the build with a version-mismatch
+> error instead of demonstrating the bug.
 
 ## The two files
 

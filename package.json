@@ -12,7 +12,7 @@
     "next": "canary",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "swc-plugin-coverage-instrument": "^0.0.32"
+    "swc-plugin-coverage-instrument": "^0.0.33"
   },
   "devDependencies": {
     "@types/node": "^22",
